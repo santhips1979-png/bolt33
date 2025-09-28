@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { 
   User, Search, Filter, Plus, Eye, MessageSquare, 
   Calendar, BarChart3, Heart, Clock, Star, Phone,
@@ -7,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import PatientAnalyticsModal from '../components/PatientAnalyticsModal';
 import toast from 'react-hot-toast';
 
 interface Patient {
@@ -36,6 +38,8 @@ function PatientsPage() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showPatientModal, setShowPatientModal] = useState(false);
+  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
+  const [analyticsPatient, setAnalyticsPatient] = useState<Patient | null>(null);
   const [patients, setPatients] = useState<Patient[]>([]);
 
   useEffect(() => {
@@ -190,6 +194,11 @@ function PatientsPage() {
       toast.error('Failed to remove patient. Please try again.');
       console.error('Error removing patient:', error);
     }
+  };
+
+  const handleViewAnalytics = (patient: Patient) => {
+    setAnalyticsPatient(patient);
+    setShowAnalyticsModal(true);
   };
 
   return (
@@ -423,7 +432,11 @@ function PatientsPage() {
                   <button className="p-2 text-gray-500 hover:text-green-600 transition-colors">
                     <MessageSquare className="w-4 h-4" />
                   </button>
-                  <button className="p-2 text-gray-500 hover:text-purple-600 transition-colors">
+                  <button 
+                    onClick={() => handleViewAnalytics(patient)}
+                    className="p-2 text-gray-500 hover:text-purple-600 transition-colors"
+                    title="View patient analytics"
+                  >
                     <BarChart3 className="w-4 h-4" />
                   </button>
                 </div>
@@ -440,6 +453,20 @@ function PatientsPage() {
             </motion.div>
           ))}
         </div>
+
+        {/* Patient Analytics Modal */}
+        <AnimatePresence>
+          {showAnalyticsModal && analyticsPatient && (
+            <PatientAnalyticsModal
+              patient={analyticsPatient}
+              isOpen={showAnalyticsModal}
+              onClose={() => {
+                setShowAnalyticsModal(false);
+                setAnalyticsPatient(null);
+              }}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Patient Detail Modal */}
         {showPatientModal && selectedPatient && (
